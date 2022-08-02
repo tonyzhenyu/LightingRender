@@ -188,6 +188,25 @@ Fresnel项 描述了有多少光会被反射离开表面，即需要参与给定
 
 ## BRDF 合并
 
+微表面BRDF{漫反射项；高光项；}
+环境光IBL项{漫反射项；镜面反射项；}
+
+roughness 参数
+
+区分金属与非金属F0
+金属与非金属与F0
+
+Metallic参数的关系
+
+在F项中
+
+Metallic 参数
+$F_0 = 0.04$
+$F_0 = lerp(F_0,basecolor,metallic)$
+
+漫反射项中
+$k_d = (1-F_{schlick})(1-metallic)$
+
 
 ## BRDF 能量守恒
 
@@ -241,4 +260,4 @@ float3 Diffuse_Burley_Disney( float3 DiffuseColor, float Roughness, float NoV, f
            float FdV = 1 + (FD90 - 1) * Pow5( 1 - NoV );       
            float FdL = 1 + (FD90 - 1) * Pow5( 1 - NoL );       
            return DiffuseColor * ( (1 / PI) * FdV * FdL );
-           }
+}
