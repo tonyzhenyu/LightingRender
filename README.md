@@ -114,6 +114,8 @@ cook-Torrance 、 phong 和 blinn-phong 三种光照模型的本质区别都在�
 
 ---
 
+## 微表面反射模型
+
 ### 微表面分布函数
 
 分布项D描述了微表面的法线分布，即微表面中有多少比例的微表面法向为H，即可以将L方向的光线反射到V方向。
@@ -156,7 +158,7 @@ $\alpha 描述微表面粗糙度$
     - $G_1(H,S) = \cfrac{1}{1+\lambda(a)}; a = \cfrac{(H⋅S)}{\alpha\sqrt{1-(H⋅S)^2}}$
     - $S=\begin{cases}L&or\\ V& \end{cases}$
     - $\lambda_{GGX}(a) = \cfrac{-1+\sqrt{1+\frac{1}{a^2}}}{2}$
-    - $\lambda_{Beckmann}(a) = \begin{cases}\cfrac{1-1.259a+0.396a^2}{3.535a+2.181a^2}&, \text where &a < 1.6 \\0 &, \text where &a \geqslant 1.6\end{cases} $
+    - $\lambda_{Beckmann}(a) = \begin{cases}\cfrac{1-1.259a+0.396a^2}{3.535a+2.181a^2}&, \text where &a < 1.6 \\ 0 &, \text where &a \geqslant 1.6\end{cases} $
     - $G_2(H,S) = G_1(H,L)⋅G_1(H,V)$
     - $G_2(H,S) = \cfrac{1}{1+G_1(H,L)+G_1(H,V)}$ 引入高度
 
