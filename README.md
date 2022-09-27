@@ -94,13 +94,13 @@ cook-Torrance 、 phong 和 blinn-phong 三种光照模型的本质区别都在�
     - F：Fresnel项，描述了在给定角度下多少光线会被反射离开表面
     - G：几何衰减项（后续也会讨论阴影遮蔽的G2项），描述了微表面互相投影遮蔽的效果，有时也用于BRDF的标准化。
     - 法线分布函数Beckmann ：$D = \cfrac{1}{\pi} \cfrac{1}{m^2cos^4\theta} e^{-(\frac{tan\theta}{m})^2},\theta = arccos(n⋅h)$
-    - 几何遮挡函数：$G = min(1,\cfrac {2(h ⋅ n)(v⋅n)}{v⋅n},\cfrac {2(h ⋅ n)(l⋅n)}{v⋅n}) $
+    - 几何遮挡函数：$G = min(1,\cfrac {2(h ⋅ n)(v⋅n)}{v⋅n},\cfrac {2(h ⋅ n)(l⋅n)}{v⋅n})$
 
 - Cook-Torrance 微表面模型描述2
     - 法线分布函数 Trowbridge-Reitz GGX： $NDF_{GGXTR}(n,h,\alpha) = \cfrac{\alpha^a}{\pi((n⋅h)^2(\alpha^2-1)+1)^2}$， $\alpha$ 是roughness
     - 菲涅尔方程： $F_{Schlick}(h,v,F_0) = F_0 + (1-F_0)(1-(h⋅v))^5$
     - 菲涅尔UE4 Epic F： $F(v,h) = F_0 + (1-F_0)2^{(-5.55473(v⋅h)-6.98316)(v⋅h)}$
-    - Schlick GGX: $G_{schlickGGX}(n,v,k) = \cfrac{n⋅v}{(n⋅v)(1-k)+k} $ $,k_{direct} = \cfrac{(\alpha +1)^2}{8},k_{IBL}=\cfrac{\alpha^2}{2}$
+    - Schlick GGX: $G_{schlickGGX}(n,v,k) = \cfrac{n⋅v}{(n⋅v)(1-k)+k}$ $,k_{direct} = \cfrac{(\alpha +1)^2}{8},k_{IBL}=\cfrac{\alpha^2}{2}$
 
 - He-Torrance-Sillion-Greenberg 模型
     - He等人提出了一个更加复杂且完全物理的BRDF模型，它考虑了光线的偏振(polarization)、衍射、干涉、表面电导率以及掠射角更小的粗糙度。如果不考虑偏振则其模型为
@@ -115,6 +115,9 @@ cook-Torrance 、 phong 和 blinn-phong 三种光照模型的本质区别都在�
 ---
 
 ## 微表面反射模型
+
+- cook-Torrance model
+- Torrance-Sparrow mode
 
 ### 微表面分布函数
 
@@ -147,6 +150,9 @@ $\alpha 描述微表面粗糙度$
     - $D_p(h) = \cfrac{\alpha_p + 2}{2\pi}(n⋅h)^{\alpha_p}$
     - $smoothness = \alpha_p $
     - $各项异性的分布函数:D_{p(aniso)}(h) = \cfrac{\sqrt{(\alpha_x+2)(\alpha_y+2)}}{2\pi}(\cos\theta_h)^{\alpha_x\cos^2\phi_h + \alpha_y\sin^2\phi_h}$
+
+- SmithJointGGXVisibilityTerm
+  - Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 
 ### 几何衰减项
 
