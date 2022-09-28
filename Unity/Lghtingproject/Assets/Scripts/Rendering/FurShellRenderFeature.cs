@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-//[DisallowMultipleRendererFeature] //! non public for urp version 10.0
+[DisallowMultipleRendererFeature] //! non public for urp version 10.0
 public class FurShellRenderFeature : ScriptableRendererFeature
 {
     [System.Serializable]public struct FurshellSettings {

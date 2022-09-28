@@ -1,25 +1,7 @@
-#ifndef FURSHELL_PASS
-#define FURSHELL_PASS
+#ifndef ZY_FURSHELL_PASS
+#define ZY_FURSHELL_PASS
 
 #include "FurShellLighting.hlsl"
-#include "FurShellSurfaceData.hlsl"
-
-#ifndef INIT_SURFACEDATA 
-#define INIT_SURFACEDATA InitSurfaceData()
-
-FurShellSurfaceData InitSurfaceData(){
-
-    FurShellSurfaceData surfaceData = (FurShellSurfaceData)0;
-    surfaceData.albedo = (half3)0.75;
-    surfaceData.metallic = 0;
-    surfaceData.roughness = 1;
-    surfaceData.occlusion = half4(0,0,0,0);
-    surfaceData.emissionColor = half3(0,0,0);
-
-    return surfaceData;
-}
-#endif
-
 
 Varyings vert(Attributes input)
 {
@@ -30,7 +12,7 @@ Varyings vert(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     //force direction.
-    float3 direction = lerp(input.normal.xyz , _ForceDirection * __ForceScaleScale  + input.normal * __ForceScaleScale,FUR_LAYER_OFFSET);
+    float3 direction = lerp(input.normal.xyz , _ForceDirection * _ForceScale  + input.normal * _ForceScale,FUR_LAYER_OFFSET);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz + FUR_LAYER_OFFSET * direction * _Distance );
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal,input.tangent);
@@ -43,7 +25,7 @@ Varyings vert(Attributes input)
     output.normalWS = normalInput.normalWS;
     output.shadowCoord = GetShadowCoord(vertexInput);
     output.shadowCoord = TransformWorldToShadowCoord(vertexInput.positionWS);
-    output.tangentWS = float4(TransformObjectToWorldDir(input.tangent.xyz), input.tangent.w);
+    output.tangentWS = float4(TransformObjectToWorldDir(input.tangent.xyz), input.tangent.w).xyz;
 
     return output;
 }
@@ -56,11 +38,12 @@ half4 frag(Varyings input) : SV_Target
     half4 color;
     half2 uv = input.uv;
 
-    // ---------------------------- SurfaceData
-    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
-    
-    color.rgb = texColor.rgb * _BaseColor.rgb;
-    color.rgb = MixFog(color, input.fogCoord);
+    // ---------------------------- Init SurfaceData
+
+    FurShellSurfaceData surfaceData = INIT_SURFACEDATA(uv.xy);
+
+    color.rgb = surfaceData.albedo;
+    color.rgb = MixFog(color.rgb, input.fogCoord);
     color.a = 1.0;
     // ---------------------------
 
@@ -73,27 +56,30 @@ half4 frag(Varyings input) : SV_Target
     #endif
 
     half softness = (1 - _FurSoftness + 0.1) * 10;
-    half alpha = max(0,1 - (pow(FUR_LAYER_OFFSET, softness * 2 ) /softness));
-
+    half alpha = max(0,1 - (pow(FUR_LAYER_OFFSET, softness * 2 ) / softness));
     half edgeFade = max(dot(input.normalWS , normalize(-input.viewDirWS)) + _FurEdgeSoftness,0);
-
     half softfur = alpha - edgeFade;
     
     #if _IDMASK
         half3 maskmap = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, uv).rgb;
-        maskmap = (maskmap.r+maskmap.g+maskmap.b)/3;
+        maskmap = (maskmap.r + maskmap.g + maskmap.b)/3;
         half idmask = maskmap.r;
         color.a = softfur * idmask;
     #else
-        color.a = softfur;
+        color.a = max(0,softfur) ;
     #endif
 
-    float clipValue = texColor.a * _BaseColor.a * noise * (1- FUR_LAYER_OFFSET) - _Cutoff;
-    clip((step(lerp(0 ,1,FUR_LAYER_OFFSET)  , noise + (1- _Cutoff ) )  - 1) * idmask);
-    // --------------------------- shaoe end
+    #if _IDMASK
+        float clipValue = surfaceData.alpha * noise * (1- FUR_LAYER_OFFSET) - _Cutoff;
+        clip((step(lerp(0 ,1,FUR_LAYER_OFFSET)  , noise + (1 - _Cutoff ) )  - 1) * idmask);
+    #else
+        float clipValue = surfaceData.alpha * noise * (1 - FUR_LAYER_OFFSET) - _Cutoff;
+        clip((step(lerp(0 ,1,FUR_LAYER_OFFSET)  , noise + (1 - _Cutoff ) )  - 1));
+    #endif
+    
+    // --------------------------- shape end
 
-    FurShellSurfaceData surfaceData = INIT_SURFACEDATA;
-    half3 lightCaculated = Litted(input, surfaceData);
+    half3 lightCaculated = FurshellFragmentPRB(input, surfaceData);
 
     return half4(lightCaculated, color.a);
     

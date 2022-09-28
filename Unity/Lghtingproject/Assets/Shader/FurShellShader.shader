@@ -1,17 +1,17 @@
-Shader "Custom/Lit/FurShell"
+Shader "Custom/Lit/FurShell Lit"
 {
     Properties
     {
         //mask map
-        [ToggleOff(_IDMASK)] _IDMASK ("IDMASK?", Int) = 0
+        [Toggle(_IDMASK)] _IDMASK ("IDMASK?", Int) = 0
         _MaskMap("MaskMap", 2D) = "black" {}
         
         // flowmap
-        [ToggleOff(_FLOWMAP)] _FLOWMAP ("FLOWMAP?", Int) = 0
+        [Toggle(_FLOWMAP)] _FLOWMAP ("FLOWMAP?", Int) = 0
         _FlowMap("FlowMap" ,2D) = "black" {}
 
         //NormalMap
-        [ToggleOff(_NORMALMAP)] _NORMALMAP ("NORMALMAP?", Int) = 0
+        [Toggle(_NORMALMAP)] _NORMALMAP ("NORMALMAP?", Int) = 0
         [Normal]_NormalMap("NormalMap" , 2D) = "bump" {}
 
         //Emission
@@ -21,7 +21,7 @@ Shader "Custom/Lit/FurShell"
 
         //BaseColor
         _BaseColor("* Base Color", Color) = (1,1,1,1)
-        [MainTexture]_BaseMap("Main Texture",2D) = "white" {}
+        _BaseMap("Main Texture",2D) = "white" {}
         
         //surfacedata
         _SpecularColor("Specular Color" , color) = (1,1,1,1)
@@ -30,10 +30,10 @@ Shader "Custom/Lit/FurShell"
 
         //occlusion
         _AOIntensity("* AO Intensity",range(0,1)) = 0
-        _OcclusionColor("* Occlusion Color", Color) = (1,1,1,1)
+        _OcclusionColor("* Occlusion Color", Color) = (0,0,0,0)
 
         //Force And displacement
-        [PowerSlider(0,0.01)]_Distance("Dis" , range(0,0.1)) = 0
+        _Distance("Dis" , range(0,0.1)) = 0
         _ForceScale("* ForceScale", float) = 0
         _ForceDirection("ForceDirection" , vector) = (0,0,0,0)
 
@@ -84,8 +84,6 @@ Shader "Custom/Lit/FurShell"
             #ifdef _ALPHATEST_ON
                 float _Cutoff;
             #endif
-
-
             CBUFFER_END
 
             TEXTURE2D(_BaseMap);   SAMPLER(sampler_BaseMap);
@@ -158,9 +156,9 @@ Shader "Custom/Lit/FurShell"
                 Light mainLight = GetMainLight();
                 
                 half3 h = SafeNormalize(mainLight.direction + normalize(input.viewDirWS));
-                half nov = dot(input.normalWS , normalize(input.viewDirWS));
-                half nol = dot(mainLight.direction,input.normalWS);
-                half noh = dot(h , input.normalWS);
+                half nov = dot(normalize(input.normalWS) , normalize(input.viewDirWS));
+                half nol = dot(mainLight.direction,normalize(input.normalWS));
+                half noh = dot(h , normalize(input.normalWS));
  
                 // caculate fresnel
                 float fresnel = (1 - nov);
@@ -215,7 +213,7 @@ Shader "Custom/Lit/FurShell"
             #pragma fragment frag
 
             #include "FurShellInput.hlsl"
-            #include "FurShellPass.hlsl"
+            #include "FurShellForwardPass.hlsl"
             
             ENDHLSL
 

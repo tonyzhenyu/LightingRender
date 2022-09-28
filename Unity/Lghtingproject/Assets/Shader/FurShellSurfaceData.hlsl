@@ -1,5 +1,5 @@
-#ifndef FURSHELL_SURFACEDATA
-#define FURSHELL_SURFACEDATA
+#ifndef ZY_FURSHELL_SURFACEDATA
+#define ZY_FURSHELL_SURFACEDATA
 
 struct FurShellSurfaceData{
     half3 albedo;
