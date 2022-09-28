@@ -1,10 +1,7 @@
-#ifndef FURSHELL_LIGHTING
-#define FURSHELL_LIGHTING
+#ifndef ZY_FURSHELL_LIGHTING
+#define ZY_FURSHELL_LIGHTING
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-
-inline half PI = 3.1415926;
-inline half e = 2.71828;
 
 //--- setup dot vector
 struct DotVector{
@@ -37,37 +34,40 @@ DotVector InitSafeDotVector(half3 normalWS,half3 viewDirWS,half3 lightDir){
     v.loh = max(dot(v.halfvector,lightDir),0);
     return v;
 }
-//DiffuseTerm -----------------------------------
-half3 DiffuseTerm(Light light, half ndotl,half offset , half loddist){
-    half3 diffuseTerm ;
-    diffuseTerm = (ndotl + offset + 0.5) / 4 -  pow(nov, 5) / PI ;
-    diffuseTerm = max(0 , diffuseTerm)* (8 /PI);
+// End SetupVectors -----------------------------
 
-    diffuseTerm = lerp(max(0,ndotl),diffuseTerm,loddist);
+//DiffuseTerm -----------------------------------
+half3 DiffuseTerm(Light light,half nov, half ndotl,half offset , half loddist){
+    half3 diffuseTerm ;
+
+    diffuseTerm = (ndotl  + offset + 0.5) / 4  - (pow(nov-0.25, 5) / PI) ;
+    diffuseTerm = max(0 , diffuseTerm) *(6/PI);
+
+    //diffuseTerm = lerp(max(0,ndotl),diffuseTerm,loddist);
     diffuseTerm *= light.color * light.distanceAttenuation * light.shadowAttenuation;
-    
     return diffuseTerm;
+    
 }
 //SpecularTerm
 half3 SpecularTerm(DotVector v,half roughness, half3 specularColor,Light light , half offset){
     //specularTerms
-    nol = max(0,v.nol) ;
-    loh = max(0,v.loh) ;
-
+    half nol = max(0,v.nol) ;
+    half loh = max(0,v.loh) ;
+    half e = 2.71828;
     half3 specularTerm;
     
     half smoothness = pow(roughness + 0.5 ,2);//input smoothness^2
     half3 F0 = specularColor;//half3(0.98,1,0.98);
     half3 F = F0 + (1-F0) * pow(1 - loh,5);
 
-    half powerterm = (noh * noh - 1)/(smoothness * smoothness * v.noh * v.noh);
-    half D_beckmann = pow( e ,powerterm ) / ( PI * smoothness * smoothness * pow(noh,4));
+    half powerterm = (v.noh * v.noh - 1)/(smoothness * smoothness * v.noh * v.noh);
+    half D_beckmann = pow( e ,powerterm ) / ( PI * smoothness * smoothness * pow(v.noh,4));
     
     half c = 0.797884560802865h; // c = sqrt( 2/ PI)
     half k = smoothness * c;
 
     half gl = nol * (1 - k) + k;
-    half gv = nov * (1 - k) + k;
+    half gv = v.nov * (1 - k) + k;
 
     half G_SmithBeckMannVisibilityTerm = (1.0 / (gl * gv + 1e-5f)) * 0.25;
 
@@ -76,6 +76,7 @@ half3 SpecularTerm(DotVector v,half roughness, half3 specularColor,Light light ,
     specularTerm = lerp(specularTerm * F, specularTerm * light.color , offset * offset);
 
     return specularTerm;
+
 }
 
 half RimLight(half offset,half ndotv){
@@ -86,23 +87,19 @@ half RimLight(half offset,half ndotv){
     half fresnel = 1 - max(0,ndotv);
 
     half rimLight = fresnel * selfocclusion;
-    rimLight *= rimLight;
+    rimLight *= rimLight * 2;
+    
     
     return rimLight;
 }
 //light
-inline half3 Litted(Varyings input,FurShellSurfaceData surfaceData){
+inline half3 FurshellFragmentPRB(Varyings input,FurShellSurfaceData surfaceData){
     // ----------------- init input data
     Light mainLight = GetMainLight(input.shadowCoord);
-
     DotVector dotvector = InitSafeDotVector(input.normalWS,input.viewDirWS,mainLight.direction);
-    half3 tangent = SafeNormalize(input.tangentWS.xyz);
-    half3 h = dotvector.halfvector;
-    half nov = dotvector.nov;
-    half nol = dotvector.nol;
-    half noh = dotvector.noh;
-    half loh = dotvector.loh;
 
+    half3 tangent = SafeNormalize(input.tangentWS.xyz);
+        
     //EnironmentTerm
     half3 sampleEnironmentSH = SampleSH(input.normalWS); // environmentlight;
     half3 SHL = lerp(surfaceData.occlusion.xyz * sampleEnironmentSH, sampleEnironmentSH, 1 - surfaceData.occlusion.w);
@@ -112,11 +109,12 @@ inline half3 Litted(Varyings input,FurShellSurfaceData surfaceData){
     dist *= dist;
     dist = 1- dist; // lod 
 
-    half3 diffuseTerm = DiffuseTerm(mainLight,dotvector.nol,FUR_LAYER_OFFSET,dist);
-    half3 specularTerm = SpecularTerm(v,surfaceData.roughness,surfaceData.specular,mainLight, FUR_LAYER_OFFSET);
-    half rimLight = RimLight(FUR_LAYER_OFFSET, v.nov);
-
-    half3 lightCaculated = rimLight * sampleEnironmentSH + surfaceData.albedo * diffuseTerm + surfaceData.albedo * SHL + specularTerm;
+    half3 diffuseTerm = DiffuseTerm(mainLight,dotvector.nov,dotvector.nol,FUR_LAYER_OFFSET,dist);
+    half3 specularTerm = SpecularTerm(dotvector,surfaceData.roughness,surfaceData.specular,mainLight, FUR_LAYER_OFFSET);
+    half rimLight = RimLight(FUR_LAYER_OFFSET, dotvector.nov) * sampleEnironmentSH;
+    
+    //return specularTerm;
+    half3 lightCaculated = rimLight + surfaceData.albedo * diffuseTerm + surfaceData.albedo * SHL + specularTerm;
     
     return lightCaculated;
     // --------------------------- Light ----------------------
