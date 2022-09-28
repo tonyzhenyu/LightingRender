@@ -76,12 +76,11 @@ half4 frag(Varyings input) : SV_Target
         float clipValue = surfaceData.alpha * noise * (1 - FUR_LAYER_OFFSET) - _Cutoff;
         clip((step(lerp(0 ,1,FUR_LAYER_OFFSET)  , noise + (1 - _Cutoff ) )  - 1));
     #endif
-    
     // --------------------------- shape end
 
-    half3 lightCaculated = FurshellFragmentPRB(input, surfaceData);
+    half3 finnalcolor = FurshellFragmentPRB(input, surfaceData);
 
-    return half4(lightCaculated, color.a);
+    return half4(finnalcolor, color.a);
     
 }
 
