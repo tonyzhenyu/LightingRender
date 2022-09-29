@@ -2,49 +2,14 @@
 #define ZY_CUSTOM_LIGHTING
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-
-
-//------------------------- setup dot vector
-struct DotVector{
-    half nov;
-    half nol;
-    half noh;
-    half loh;
-    half3 halfvector;
-};
-
-inline DotVector InitDotVector(half3 normalWS,half3 viewDirWS,half3 lightDir){
-    DotVector v = (DotVector)0;
-
-    v.halfvector = SafeNormalize(lightDir + normalize(viewDirWS));
-    v.nov = dot(normalWS , normalize(viewDirWS));
-    v.nol = dot(lightDir,normalWS);
-    v.noh = dot(v.halfvector,normalWS);
-    v.loh = dot(v.halfvector,lightDir);
-
-    return v;
-}
-
-inline DotVector InitSafeDotVector(half3 normalWS,half3 viewDirWS,half3 lightDir){
-    DotVector v = (DotVector)0;
-
-    v.halfvector = normalize(lightDir + normalize(viewDirWS));
-    v.nov = max(dot(normalWS , normalize(viewDirWS)),0);
-    v.nol = max(dot(lightDir,normalWS),0);
-    v.noh = max(dot(v.halfvector,normalWS),0);
-    v.loh = max(dot(v.halfvector,lightDir),0);
-    return v;
-}
-// End SetupVectors -----------------------------
+#include "ZY_LightingCommon.hlsl"
 
 //DiffuseTerm -----------------------------------
-half3 DiffuseTerm(Light light,half nov, half ndotl,half offset , half loddist){
+half3 DiffuseTerm(Light light,half nov, half ndotl){
     half3 diffuseTerm ;
+    diffuseTerm = ndotl;
+    diffuseTerm = max(0 , diffuseTerm);
 
-    diffuseTerm = (ndotl  + offset + 0.5) / 4  - (pow(nov-0.25, 5) / PI) ;
-    diffuseTerm = max(0 , diffuseTerm) *(6/PI);
-
-    //diffuseTerm = lerp(max(0,ndotl),diffuseTerm,loddist);
     diffuseTerm *= light.color * light.distanceAttenuation * light.shadowAttenuation;
     return diffuseTerm;
     
@@ -80,14 +45,11 @@ half3 SpecularTerm(DotVector v,half roughness, half3 specularColor,Light light )
 
 }
 // RimLight
-half RimLight(half offset,half ndotv){
-    
-    float selfocclusion = offset * offset;
-    selfocclusion += 0.4;
+half RimLight(half ndotv){
 
     half fresnel = 1 - max(0,ndotv);
 
-    half rimLight = fresnel * selfocclusion;
+    half rimLight = fresnel;
     rimLight *= rimLight * 2;
     
     return rimLight;
@@ -97,28 +59,28 @@ half RimLight(half offset,half ndotv){
 //PBR Part
 #ifndef FRAGMENT_PBR
 #define FRAGMENT_PBR(input, surfaceData) ZYFragmentPBR(input, surfaceData)
-    inline half3 ZYFragmentPBR(Varyings input , ZYSurfaceData surfaceData){
+    half3 ZYFragmentPBR(Varyings input , ZYSurfaceData surfaceData){
         half3 finnalcolor;
 
         // ----------------- init input data
         Light mainLight = GetMainLight(input.shadowCoord);
-        DotVector dotvector = InitSafeDotVector(input.normalWS,input.viewDirWS,mainLight.direction);
+        DotVector dotvector = InitSafeDotVector(surfaceData.normalTS,input.viewDirWS,mainLight.direction);
 
-        half3 tangent = SafeNormalize(input.tangentWS.xyz);
+        half3 tangent = SafeNormalize(input.tangentToWorldPacked[0].xyz);
             
         //EnironmentTerm
-        half3 sampleEnironmentSH = SampleSH(input.normalWS); // environmentlight;
-        half3 SHL = lerp(surfaceData.occlusion.xyz * sampleEnironmentSH, sampleEnironmentSH, 1 - surfaceData.occlusion.w);
+        half3 sampleEnironmentSH = SampleSH(surfaceData.normalTS); // environmentlight;
+        half3 SHL = lerp(0, sampleEnironmentSH, surfaceData.occlusion);
 
         //------------Distance
         half dist = saturate(distance(input.worldPos, _WorldSpaceCameraPos) / 5);
 
-        half3 diffuseTerm = DiffuseTerm(mainLight,dotvector.nov,dotvector.nol,FUR_LAYER_OFFSET,dist);
-        half3 specularTerm = SpecularTerm(dotvector,surfaceData.roughness,surfaceData.specular,mainLight, FUR_LAYER_OFFSET);
-        half rimLight = RimLight(FUR_LAYER_OFFSET, dotvector.nov) * sampleEnironmentSH;
+        half3 diffuseTerm = DiffuseTerm(mainLight,dotvector.nov,dotvector.nol);
+        half3 specularTerm = SpecularTerm(dotvector,surfaceData.roughness,surfaceData.specular,mainLight);
+        half rimLight = RimLight(dotvector.nov) * sampleEnironmentSH;
         
         //return specularTerm;
-        finnalcolor = surfaceData.albedo * diffuseTerm + surfaceData.albedo * SHL + specularTerm;
+        finnalcolor =  surfaceData.albedo * diffuseTerm + surfaceData.albedo * SHL + specularTerm;
         
         return finnalcolor;
     }

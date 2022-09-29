@@ -1,4 +1,4 @@
-Shader "Custom/Lit/FurShell Lit"
+Shader "ZY/FurShell Lit"
 {
     Properties
     {
@@ -49,41 +49,41 @@ Shader "Custom/Lit/FurShell Lit"
     {
 		Tags {"Queue" = "Geometry" }
         
-        Pass
-        {
-            Name "ForwardLit"
+        // Pass
+        // {
+        //     Name "ForwardLit"
             
-            Tags
-            {
-               "RenderPipeline" = "UniversalRenderPipeline"  "LightMode" = "UniversalForward" 
-            } 
+        //     Tags
+        //     {
+        //        "RenderPipeline" = "UniversalRenderPipeline"  "LightMode" = "UniversalForward" 
+        //     } 
 
-			Cull back
+		// 	Cull back
 
-            HLSLPROGRAM
+        //     HLSLPROGRAM
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+        //     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        //     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            #pragma shader_feature_local _EMISSION
-            #pragma shader_feature_local _NORMALMAP
+        //     #pragma shader_feature_local _EMISSION
+        //     #pragma shader_feature_local _NORMALMAP
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile _fragment _ _SHADOWS_SOFT
+        //     #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+        //     #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+        //     #pragma multi_compile _fragment _ _SHADOWS_SOFT
             
-			#pragma exclude_renderers gles glcore
-			#pragma target 4.5
+		// 	#pragma exclude_renderers gles glcore
+		// 	#pragma target 4.5
 
-            #pragma vertex vert
-            #pragma fragment frag
+        //     #pragma vertex vert
+        //     #pragma fragment frag
             
-            #include "FurShellInput.hlsl"
-            #include "FurShellForwardPass.hlsl"
+        //     #include "FurShellInput.hlsl"
+        //     #include "FurShellForwardPass.hlsl"
         
-            ENDHLSL
+        //     ENDHLSL
 
-        }
+        // }
         Pass
         {
             Name "FurShellPass"
@@ -100,6 +100,8 @@ Shader "Custom/Lit/FurShell Lit"
 
             HLSLPROGRAM
             
+            #define FUR_ALPHA_SHAPE
+            
             #pragma shader_feature_local _EMISSION
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local _IDMASK
@@ -114,8 +116,8 @@ Shader "Custom/Lit/FurShell Lit"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "FurShellInput.hlsl"
-            #include "FurShellForwardPass.hlsl"
+            #include "FurShell/FurShellInput.hlsl"
+            #include "FurShell/FurShellForwardPass.hlsl"
             
             ENDHLSL
 

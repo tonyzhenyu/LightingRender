@@ -2,22 +2,9 @@
 #define ZY_CUSTOM_FORWARDPASS
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "ZY_Lighting.hlsl"
 
-CBUFFER_START(UnityPerMaterial)
-float4 _BaseMap_ST;
-float4 _NoiseMap_ST;
-float4 _BaseColor;
-float4 _OcclusionColor;
-half _AOIntensity;
-#ifdef _ALPHATEST_ON
-    float _Cutoff;
-#endif
-CBUFFER_END
-
-TEXTURE2D(_BaseMap);   SAMPLER(sampler_BaseMap);
-TEXTURE2D(_NoiseMap);   SAMPLER(sampler_NoiseMap);
-
-// -----------------------------------------
+// vertex shader------------------------------
 
 Varyings vert(Attributes input)
 {
@@ -27,46 +14,43 @@ Varyings vert(Attributes input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz );
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal,input.tangent);
 
     output.vertex = vertexInput.positionCS;
     output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
 
     output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
+    
     output.worldPos = vertexInput.positionWS.xyz;
     output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS.xyz);
-    output.normalWS = normalInput.normalWS;
+
+    #ifdef _NORMALMAP
+        half sgn = input.tangent.w;
+        float3x3 tangentToWorld = CreateTangentToWorld(normalInput.normalWS,normalInput.tangentWS,sgn);
+        output.tangentToWorldPacked[0].xyz = tangentToWorld[0];
+        output.tangentToWorldPacked[1].xyz = tangentToWorld[1];
+        output.tangentToWorldPacked[2].xyz = tangentToWorld[2];
+    #else
+        output.tangentToWorldPacked[0].xyz = half3(0,0,0);
+        output.tangentToWorldPacked[1].xyz = half3(0,0,0);
+        output.tangentToWorldPacked[2].xyz = normalInput.normalWS;
+    #endif
 
     return output;
 }
+
+// fragment shader -------------------------------
 
 half4 frag(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    half4 color;
-    half2 uv = input.uv;
+    ZYSurfaceData surfaceData = INIT_ZY_SURFACEDATA(input);
+    half3 pbrlitcolor = FRAGMENT_PBR(input,surfaceData);
 
-    Light mainLight = GetMainLight();
-    ZYSurfaceData surfaceData = INIT_ZY_SURFACEDATA(input.uv);
-    // caculate fresnel
-    float fresnel = (1 - nov);
-
-    // temp caculate simple light
-    half3 sampleEnironmentSH = SampleSH(input.normalWS); // environmentlight;
-    half3 lambertlight = LightingLambert(mainLight.color,mainLight.direction,input.normalWS);
-    half specularTerm = pow(saturate(noh), 64) * mainLight.distanceAttenuation;
-    // ---------------------------
-    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
-
-    color.rgb = texColor.rgb * _BaseColor.rgb;
-    color.rgb = MixFog(color, input.fogCoord);
-    color.a = 1.0;
-
-    return half4(color.xyz * lambertlight.xyz + color.xyz *  sampleEnironmentSH +  specularTerm,1);
-    
+    return half4(pbrlitcolor,1);
 }
 
 #endif

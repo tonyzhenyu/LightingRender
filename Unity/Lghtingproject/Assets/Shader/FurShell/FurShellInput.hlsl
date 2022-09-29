@@ -60,11 +60,10 @@ struct Varyings
 {
     float4 vertex       : SV_POSITION;
     float2 uv           : TEXCOORD0;
-    float fogCoord      : TEXCOORD1;
-    float3 worldPos     : TEXCOORD2;
-    float3 viewDirWS    : TEXCOORD3;
-    float3 normalWS     : TEXCOORD4;
-    float4 shadowCoord  : TEXCOORD5;
+    float3 worldPos     : TEXCOORD1;
+    float3 viewDirWS    : TEXCOORD2;
+    float3 normalWS     : TEXCOORD3;
+    float4 shadowCoord  : TEXCOORD4;
     float3 tangentWS    : VAR_TANGENT;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID

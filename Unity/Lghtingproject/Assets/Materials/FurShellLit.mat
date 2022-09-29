@@ -7,11 +7,10 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_Lit_FurShell
-  m_Shader: {fileID: 4800000, guid: 87559da07ee00084d978882216a8ba21, type: 3}
+  m_Name: FurShellLit
+  m_Shader: {fileID: 4800000, guid: c2def2a8e5cf37640bdffb0cf0110a75, type: 3}
   m_ValidKeywords: []
-  m_InvalidKeywords:
-  - _FLOWMAP
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -51,9 +50,9 @@ Material:
     - _Cutoff: 1
     - _Distance: 0.1
     - _EMISSION: 0
-    - _FLOWMAP: 1
+    - _FLOWMAP: 0
     - _ForceScale: 1
-    - _FurEdgeSoftness: 0.129
+    - _FurEdgeSoftness: 0.128
     - _FurSoftness: 1
     - _IDMASK: 0
     - _Metallic: 0
