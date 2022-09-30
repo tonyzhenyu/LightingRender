@@ -5,7 +5,6 @@
 #include "ZY_Lighting.hlsl"
 
 // vertex shader------------------------------
-
 Varyings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -25,7 +24,7 @@ Varyings vert(Attributes input)
     output.worldPos = vertexInput.positionWS.xyz;
     output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS.xyz);
 
-    #ifdef _NORMALMAP
+    #if _NORMALMAP
         half sgn = input.tangent.w;
         float3x3 tangentToWorld = CreateTangentToWorld(normalInput.normalWS,normalInput.tangentWS,sgn);
         output.tangentToWorldPacked[0].xyz = tangentToWorld[0];
@@ -41,7 +40,6 @@ Varyings vert(Attributes input)
 }
 
 // fragment shader -------------------------------
-
 half4 frag(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
