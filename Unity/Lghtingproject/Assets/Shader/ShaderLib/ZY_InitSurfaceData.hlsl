@@ -1,5 +1,6 @@
 #ifndef INIT_ZY_SURFACEDATA
 #define INIT_ZY_SURFACEDATA(input) InitSurfaceData(input)
+
 ZYSurfaceData InitSurfaceData(Varyings input){
     ZYSurfaceData surfaceData = (ZYSurfaceData)0;
     surfaceData.albedo = 0.75;

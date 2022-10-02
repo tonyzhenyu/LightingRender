@@ -23,7 +23,8 @@ Varyings vert(Attributes input)
     
     output.worldPos = vertexInput.positionWS.xyz;
     output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS.xyz);
-
+    
+    output.shadowCoord = GetShadowCoord(vertexInput);
     #if _NORMALMAP
         half sgn = input.tangent.w;
         float3x3 tangentToWorld = CreateTangentToWorld(normalInput.normalWS,normalInput.tangentWS,sgn);

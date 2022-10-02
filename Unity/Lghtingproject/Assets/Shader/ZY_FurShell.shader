@@ -122,6 +122,29 @@ Shader "ZY/FurShell Lit"
             ENDHLSL
 
         }
+        Pass
+        {
+            Name "ShadowCaster"
+
+            Tags{
+                "RenderPipeline" = "UniversalRenderPipeline"  "LightMode" = "ShadowCaster" 
+            }
+
+            HLSLPROGRAM
+            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma shader_feature _ALPHATEST_ON
+
+            #include "ShaderLib/ZY_Input.hlsl"
+            #include "ShaderLib/ZY_ShadowCasterPass.hlsl"
+
+            ENDHLSL
+        }
     }
 
 }

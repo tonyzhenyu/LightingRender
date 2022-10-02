@@ -3,6 +3,15 @@ Shader "ZY/Standard Lit"
     Properties
     {
 
+
+        //BaseColor
+        _BaseColor("* Base Color", Color) = (1,1,1,1)
+        _BaseMap("Main Texture",2D) = "white" {}
+
+        //PBR
+        [Toggle(_USEPBRMAP)] _USEPBRMAP ("USEPBRMAP?", Int) = 0
+        _PBRMap("PBR Map" ,2D) = "white" {}
+
         //NormalMap
         [Toggle(_NORMALMAP)] _NORMALMAP ("NORMALMAP?", Int) = 0
         [Normal]_BumpMap("NormalMap" , 2D) = "bump" {}
@@ -12,14 +21,6 @@ Shader "ZY/Standard Lit"
         [HDR]_EmissionColor("* EmissionColor" ,color) = (0,0,0,1)
         _EmissionMap("EmissionMap" ,2D) = "white" {}
 
-        //PBR
-        [Toggle(_USEPBRMAP)] _USEPBRMAP ("USEPBRMAP?", Int) = 0
-        _PBRMap("PBR Map" ,2D) = "white" {}
-
-        //BaseColor
-        _BaseColor("* Base Color", Color) = (1,1,1,1)
-        _BaseMap("Main Texture",2D) = "white" {}
-        
         _BumpScale("BumpScale",float) = 1
         //surfacedata
         _Metallic("Metallic",range(0,1)) = 0
@@ -56,10 +57,10 @@ Shader "ZY/Standard Lit"
             HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            
-            #pragma shader_feature_local _EMISSION
-            #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local _USEPBRMAP
+
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _USEPBRMAP
 
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
@@ -90,6 +91,13 @@ Shader "ZY/Standard Lit"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma shader_feature _ALPHATEST_ON
+
+            #include "ShaderLib/ZY_Input.hlsl"
+            #include "ShaderLib/ZY_ShadowCasterPass.hlsl"
 
             ENDHLSL
         }

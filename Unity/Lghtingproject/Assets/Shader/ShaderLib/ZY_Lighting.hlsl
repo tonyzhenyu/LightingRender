@@ -13,12 +13,12 @@
 
         // ----------------- init input data
         Light mainLight = GetMainLight(input.shadowCoord);
-        DotVector dotvector = InitSafeDotVector(surfaceData.normalWS,input.viewDirWS,mainLight.direction);
+        DotVector dotvector = InitSafeDotVector(normalize(surfaceData.normalWS),input.viewDirWS,mainLight.direction);
 
         half3 tangent = SafeNormalize(input.tangentToWorldPacked[0].xyz);
             
         // ----------------- EnironmentTerm
-        half3 sampleEnironmentSH = SampleSH(surfaceData.normalWS); // environmentlight;
+        half3 sampleEnironmentSH = SampleSH(normalize(surfaceData.normalWS)); // environmentlight;
         half3 SHL = lerp(0, sampleEnironmentSH, surfaceData.occlusion);
 
         // ----------------- Distance
@@ -26,12 +26,12 @@
 
         half3 diffuseTerm = DiffuseTerm(mainLight,dotvector.nol);
         half3 specularTerm = SpecularTerm_BeckManned(dotvector,surfaceData.roughness,half3(1,1,1),mainLight);
-        half rimLight = RimLight(dotvector.nov) * sampleEnironmentSH;
+        half3 rimLight = RimLight(dotvector.nov) * sampleEnironmentSH;
         
         //return specularTerm;
         finnalcolor =  surfaceData.albedo * diffuseTerm + surfaceData.albedo * SHL + specularTerm + surfaceData.emission;
         
-        return finnalcolor ;
+        return finnalcolor;
     }
 #endif
 

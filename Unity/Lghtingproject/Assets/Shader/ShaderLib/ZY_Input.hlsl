@@ -61,6 +61,8 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+
+#ifndef INIT_ZY_SURFACEDATA
 #define INIT_ZY_SURFACEDATA(input) InitSurfaceData(input)
 
 ZYSurfaceData InitSurfaceData(Varyings input){
@@ -69,8 +71,7 @@ ZYSurfaceData InitSurfaceData(Varyings input){
     half2 transformUV = input.uv.xy * _BaseMap_ST.xy + _BaseMap_ST.zw;
     
     half4 basemap = SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,transformUV.xy);
-
-
+    
     #if _USEPBRMAP
         half4 pbrmap = SAMPLE_TEXTURE2D(_PBRMap,sampler_PBRMap,transformUV.xy);
         surfaceData.metallic = pbrmap.r;
@@ -79,7 +80,7 @@ ZYSurfaceData InitSurfaceData(Varyings input){
         surfaceData.height = pbrmap.a;
     #endif
 
-    surfaceData.albedo = _BaseColor * basemap.rgb;
+    surfaceData.albedo = _BaseColor.rgb * basemap.rgb;
     surfaceData.specular = (half3)0;
 
     surfaceData.roughness *= _Roughness;
@@ -113,4 +114,6 @@ ZYSurfaceData InitSurfaceData(Varyings input){
 
     return surfaceData;
 }
+#endif
+
 #endif

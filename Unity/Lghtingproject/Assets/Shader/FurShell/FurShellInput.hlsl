@@ -37,9 +37,7 @@ TEXTURE2D(_NoiseMap);   SAMPLER(sampler_NoiseMap);
     TEXTURE2D(_MaskMap);   SAMPLER(sampler_MaskMap);
 #endif
 
-// ----------------------------------
-
-//GLOBAL VALUE
+// ---------------------------------- GLOBAL VALUE
 
 half FUR_LAYER_OFFSET;
 

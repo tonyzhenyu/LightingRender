@@ -10,7 +10,7 @@ struct DotVector{
     half3 halfvector;
 };
 
-inline DotVector InitDotVector(half3 normalWS,half3 viewDirWS,half3 lightDir){
+DotVector InitDotVector(half3 normalWS,half3 viewDirWS,half3 lightDir){
     DotVector v = (DotVector)0;
 
     v.halfvector = SafeNormalize(lightDir + normalize(viewDirWS));
@@ -22,7 +22,7 @@ inline DotVector InitDotVector(half3 normalWS,half3 viewDirWS,half3 lightDir){
     return v;
 }
 
-inline DotVector InitSafeDotVector(half3 normalWS,half3 viewDirWS,half3 lightDir){
+DotVector InitSafeDotVector(half3 normalWS,half3 viewDirWS,half3 lightDir){
     DotVector v = (DotVector)0;
 
     v.halfvector = normalize(lightDir + normalize(viewDirWS));
@@ -52,7 +52,7 @@ half3 SpecularTerm_BeckManned(DotVector v,half roughness, half3 specularColor,Li
     half e = 2.71828;
     half3 specularTerm;
     
-    half smoothness = pow(roughness + 0.5 ,2);//input smoothness^2
+    half smoothness = pow(roughness ,2);//input smoothness^2
     half3 F0 = specularColor;//half3(0.98,1,0.98);
     half3 F = F0 + (1-F0) * pow(1 - loh,5);
 
@@ -68,7 +68,7 @@ half3 SpecularTerm_BeckManned(DotVector v,half roughness, half3 specularColor,Li
     half G_SmithBeckMannVisibilityTerm = (1.0 / (gl * gv + 1e-5f)) * 0.25;
 
     specularTerm = F * D_beckmann * G_SmithBeckMannVisibilityTerm / (v.nov * v.noh) ;
-    specularTerm = saturate(specularTerm) * light.distanceAttenuation * light.color;
+    specularTerm = saturate(specularTerm) * light.distanceAttenuation * light.color * light.shadowAttenuation;
     specularTerm *= light.color.rgb;
 
     return specularTerm;
